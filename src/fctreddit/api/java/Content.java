@@ -14,7 +14,8 @@ public interface Content {
 	
 	
 	/**
-	 * Creates a new Post (that can be an answer to another Post), generating its unique identifier. 
+	 * Creates a new Post (that can be an answer to another Post, in which case the parentURL should be
+	 * a valid URL for another post), generating its unique identifier. 
 	 * The result should be the identifier of the Post in case of success.
 	 * The creation timestamp of the post should be set to be the time in the server when the request
 	 * was received.
@@ -22,7 +23,7 @@ public interface Content {
 	 * @param post - The Post to be created, that should contain the userId of the author in the appropriate field.
 	 * @param password - the password of author of the new post
 	 * @return OK and PostID if the post was created;
-	 * NOT FOUND, if the owner of the short does not exist;
+	 * NOT FOUND, if the owner of the post does not exist, or if the parent Post (if not null) does not exists;
 	 * FORBIDDEN, if the password is not correct;
 	 * BAD_REQUEST, otherwise.
 	 */
