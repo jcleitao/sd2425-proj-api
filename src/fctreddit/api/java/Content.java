@@ -40,7 +40,9 @@ public interface Content {
 	 * @param sortOrder this is an optional parameter, the admissible values are on constants MOST_UP_VOTES
 	 * and MOST_REPLIES, if the first is indicated, posts IDs should be ordered from the Post with more votes
 	 * to the one with less votes. If the second is provided posts IDs should be ordered from the Post with 
-	 * more direct replies to the one with less direct replies.
+	 * more direct replies to the one with less direct replies. In ordering by MOST_UP_VOTES or by MOST_REPLIES
+	 * if there are posts with the same number of up votes or direct replies, respectively, those should be
+	 * ordered by the lexicographic order of the PostID.
 	 * @return 	OK and the List of PostIds that match all options in the right order 
 	 * 			
 	 */
@@ -86,18 +88,7 @@ public interface Content {
 	 */
 	public Result<Post> updatePost(String postId, String userPassword, Post post);
 	
-	/**
-	 * Deletes a given Post, only the author of the Post can do this operation. A successful delete will also remove
-	 * any reply to this post (or replies to those replies) even if performed by different authors.
-	 * 
-	 * @param postId the unique identifier of the Post to be deleted
-	 * @return 	NO_CONTENT in case of success 
-	 * 			NOT_FOUND if postId does not match an existing post
-	 * 			FORBIDDEN if the password is not correct (it should always be considered the authorId 
-	 * 					  of the post as the user that is attempting to execute this operation);
-	 *			CONFLICT  if this post already has any other content referencing it (is the parent of
-	 *					  another post or if there is at least one upvote or a downvote to this post.
-	 */	
+ 
 	public Result<Void> deletePost(String postId, String userPassword);
 	
 	/**
