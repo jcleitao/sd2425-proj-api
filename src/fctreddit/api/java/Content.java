@@ -59,7 +59,7 @@ public interface Content {
 	
 	/**
 	 * Retrieves a list with all unique identifiers of posts that have the post
-	 * identified by the postId as their ancestor (i.e., the replies to that post),
+	 * identified by the postId as their parent (i.e., the replies to that post),
 	 * the order should be the creation order of those posts.
 	 * @param postId the postId for which answers want to be obtained
 	 * @param timeout (optional) indicates the maximum amount of time that this operation should
@@ -88,7 +88,17 @@ public interface Content {
 	 */
 	public Result<Post> updatePost(String postId, String userPassword, Post post);
 	
- 
+	/**
+	 * Deletes a given Post, only the author of the Post can do this operation. A successful delete will also remove
+	 * any reply to this post (or replies to those replies) even if performed by different authors, however, images
+	 * associated to replies (and replies to replies) should not be deleted by the effects of this operations.
+	 * 
+	 * @param postId the unique identifier of the Post to be deleted
+	 * @return 	NO_CONTENT in case of success 
+	 * 			NOT_FOUND if postId does not match an existing post
+	 * 			FORBIDDEN if the password is not correct (it should always be considered the authorId 
+	 * 					  of the post as the user that is attempting to execute this operation);
+	 */	
 	public Result<Void> deletePost(String postId, String userPassword);
 	
 	/**

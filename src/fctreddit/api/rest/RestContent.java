@@ -89,7 +89,7 @@ public interface RestContent {
 	
 	/**
 	 * Retrieves a list with all unique identifiers of posts that have the post
-	 * identified by the postId as their ancestor (i.e., the replies to that post),
+	 * identified by the postId as their parent (i.e., the replies to that post),
 	 * the order should be the creation order of those posts.
 	 * @param postId the postId for which answers want to be obtained
 	 * @param timeout (optional) indicates the maximum amount of time that this operation should
