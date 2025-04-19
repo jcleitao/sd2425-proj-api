@@ -39,7 +39,7 @@ public interface RestContent {
 	 * Creates a new Post (that can be an answer to another Post, in which case the parentURL should be
 	 * a valid URL for another post), generating its unique identifier. 
 	 * The result should be the identifier of the Post in case of success.
-	 * The creation timestamp of the post should be set to be the time in the server when the request
+	 * The creation timestamp of the post should be set to be the time in the servers when the request
 	 * was received.
 	 * 
 	 * @param post - The Post to be created, that should contain the userId of the author in the appropriate field.
@@ -93,10 +93,10 @@ public interface RestContent {
 	 * the order should be the creation order of those posts.
 	 * @param postId the postId for which answers want to be obtained
 	 * @param timeout (optional) indicates the maximum amount of time that this operation should
-	 * 		  wait (before returning a reply to the client) for a new answer to be added
+	 * 		  wait (before returning a reply to the clients) for a new answer to be added
 	 * 		  to the post. If a new answer is added to the target post after the start of 
 	 * 		  the execution of this operation and before the timeout expires an answer should
-	 * 		  be sent to the client at that time. 		   
+	 * 		  be sent to the clients at that time.
 	 * @return 	OK and the List of PostIds that are answers to the post ordered by creationTime 
 	 * 			NOT_FOUND if postId does not match an existing Post			
 	 */

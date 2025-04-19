@@ -47,7 +47,7 @@ public interface Users {
 	 * authorId set to null, all upvotes and downvotes of the user should be removed
 	 * and if the user has an avatar that avatar should be also removed.
 	 * 
-	 * @param nauserId the userId of the user
+	 * @param userId the userId of the user
 	 * @param password password of the user
 	 * @return <OK, User> and the deleted user object in case of success
 	 *         FORBIDDEN if the password is incorrect or null 

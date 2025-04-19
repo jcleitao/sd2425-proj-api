@@ -5,7 +5,7 @@ public interface Image {
 	/**
 	 * Create an image
 	 * 
-	 * @param imageContent the bytes of the image in PNG format (in the body of the request)
+	 * @param imageContents the bytes of the image in PNG format (in the body of the request)
 	 * @return 	<OK, String> in the case of success returning the URI to access the image. 
 	 * 		   	NOT_FOUND if user does not exists
 	 * 			FORBIDDEN if user password is incorrect

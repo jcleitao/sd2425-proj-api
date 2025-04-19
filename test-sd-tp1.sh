@@ -10,7 +10,7 @@ then
 		exit 1
 fi 
 
-#execute the client with the given command line parameters
+#execute the clients with the given command line parameters
 docker pull smduarte/sd2425-tester-tp1
 docker run --rm --name=tester --network=sdnet -it -v /var/run/docker.sock:/var/run/docker.sock smduarte/sd2425-tester-tp1:latest $*
 
