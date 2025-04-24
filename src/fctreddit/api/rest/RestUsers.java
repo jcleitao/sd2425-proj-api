@@ -72,7 +72,7 @@ public interface RestUsers {
 	 * Deletes the user identified by userId. The spreadsheets owned by the user
 	 * should be eventually removed (asynchronous deletion is ok).
 	 * 
-	 * @param nauserId the userId of the user
+	 * @param userId the userId of the user
 	 * @param password password of the user
 	 * @return OK and the deleted user object in case of success
 	 *         FORBIDDEN if the password is incorrect or null 
