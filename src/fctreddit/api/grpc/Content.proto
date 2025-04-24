@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "fctreddit.impl.grpc.generated_java";
+option java_package = "fctreddit.impl.servers.grpc.generated_java";
 option java_outer_classname = "ContentProtoBuf";
 
 service Content {

@@ -20,6 +20,8 @@ import fctreddit.api.java.Result;
 import fctreddit.api.java.Result.ErrorCode;
 import fctreddit.api.rest.RestUsers;
 import fctreddit.impl.clients.java.JavaUsersClient;
+import jakarta.ws.rs.core.GenericType;
+
 
 public class RestUsersClient extends JavaUsersClient {
     private static Logger Log = Logger.getLogger(RestUsersClient.class.getName());
@@ -91,16 +93,100 @@ public class RestUsersClient extends JavaUsersClient {
 
 
     public Result<User> updateUser(String userId, String password, User user) {
-        throw new RuntimeException("Not Implemented...");
+        for(int i = 0; i < MAX_RETRIES ; i++) {
+            try {
+                // Enviar o pedido PUT para atualizar o usuário
+                Response r = target.path(userId)
+                        .queryParam(RestUsers.PASSWORD, password)
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON)
+                        .put(Entity.entity(user, MediaType.APPLICATION_JSON));
+
+                int status = r.getStatus();
+                if (status != Status.OK.getStatusCode()) {
+                    return Result.error(getErrorCodeFrom(status));
+                } else {
+                    return Result.ok(r.readEntity(User.class)); // Retorna o usuário atualizado
+                }
+
+            } catch (ProcessingException x) {
+                Log.info(x.getMessage());
+                try {
+                    Thread.sleep(RETRY_SLEEP);
+                } catch (InterruptedException e) {
+                    // Nada a fazer aqui.
+                }
+            } catch (Exception x) {
+                x.printStackTrace();
+            }
+        }
+        return Result.error(ErrorCode.TIMEOUT); 
     }
+
 
     public Result<User> deleteUser(String userId, String password) {
-        throw new RuntimeException("Not Implemented...");
+        for (int i = 0; i < MAX_RETRIES; i++) {
+            try {
+                
+                Response r = target.path(userId)
+                        .queryParam(RestUsers.PASSWORD, password) 
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON)
+                        .delete();
+
+                int status = r.getStatus();
+                if (status != Status.OK.getStatusCode()) {
+                    return Result.error(getErrorCodeFrom(status));
+                } else {
+                    return Result.ok(r.readEntity(User.class)); 
+                }
+
+            } catch (ProcessingException x) {
+                Log.info(x.getMessage());
+                try {
+                    Thread.sleep(RETRY_SLEEP);
+                } catch (InterruptedException e) {
+                    
+                }
+            } catch (Exception x) {
+                x.printStackTrace();
+            }
+        }
+        return Result.error(ErrorCode.TIMEOUT); 
     }
 
+
     public Result<List<User>> searchUsers(String pattern) {
-        throw new RuntimeException("Not Implemented...");
+        for (int i = 0; i < MAX_RETRIES; i++) {
+            try {
+                // Enviar o pedido GET para procurar usuários com o padrão
+                Response r = target.queryParam("pattern", pattern) // Adiciona o parâmetro de pesquisa
+                        .request()
+                        .accept(MediaType.APPLICATION_JSON)
+                        .get();
+
+                int status = r.getStatus();
+                if (status != Status.OK.getStatusCode()) {
+                    return Result.error(getErrorCodeFrom(status));
+                } else {
+                    List<User> users = r.readEntity(new GenericType<List<User>>() {}); // Lê a lista de usuários
+                    return Result.ok(users);
+                }
+
+            } catch (ProcessingException x) {
+                Log.info(x.getMessage());
+                try {
+                    Thread.sleep(RETRY_SLEEP);
+                } catch (InterruptedException e) {
+                    // Nada a fazer aqui.
+                }
+            } catch (Exception x) {
+                x.printStackTrace();
+            }
+        }
+        return Result.error(ErrorCode.TIMEOUT); // Retorna erro de timeout caso o número máximo de tentativas seja atingido
     }
+
 
     public static ErrorCode getErrorCodeFrom(int status) {
         return switch (status) {

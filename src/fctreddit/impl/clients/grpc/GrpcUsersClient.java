@@ -17,7 +17,10 @@ import fctreddit.api.java.Result.ErrorCode;
 import fctreddit.impl.clients.java.JavaUsersClient;
 import fctreddit.utils.grpc.DataModelAdaptor;
 import fctreddit.impl.servers.grpc.generated_java.UsersGrpc;
+import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf;
 import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.CreateUserArgs;
+import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.DeleteUserArgs;
+import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.UpdateUserArgs;
 import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.CreateUserResult;
 import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.GetUserArgs;
 import fctreddit.impl.servers.grpc.generated_java.UsersProtoBuf.GetUserResult;
@@ -64,15 +67,34 @@ public class GrpcUsersClient extends JavaUsersClient {
         }
     }
 
-    @Override
-    public Result<User> updateUser(String userId, String pwd, User user) {
-        throw new RuntimeException("Not Implemented...");
-    }
+	@Override
+	public Result<User> updateUser(String userId, String pwd, User user) {
+		try {
+			var res = stub.updateUser(UpdateUserArgs.newBuilder()
+					.setUserId(userId)
+					.setPassword(pwd)
+					.setUser(DataModelAdaptor.User_to_GrpcUser(user))
+					.build());
 
-    @Override
-    public Result<User> deleteUser(String userId, String pwd) {
-        throw new RuntimeException("Not Implemented...");
-    }
+			return Result.ok(DataModelAdaptor.GrpcUser_to_User(res.getUser()));
+		} catch (StatusRuntimeException sre) {
+			return Result.error(statusToErrorCode(sre.getStatus()));
+		}
+	}
+
+	@Override
+	public Result<User> deleteUser(String userId, String pwd) {
+		try {
+			var res = stub.deleteUser(DeleteUserArgs.newBuilder()
+					.setUserId(userId)
+					.setPassword(pwd)
+					.build());
+
+			return Result.ok(DataModelAdaptor.GrpcUser_to_User(res.getUser()));
+		} catch (StatusRuntimeException sre) {
+			return Result.error(statusToErrorCode(sre.getStatus()));
+		}
+	}
 
     @Override
     public Result<List<User>> searchUsers(String pattern) {

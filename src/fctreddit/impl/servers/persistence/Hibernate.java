@@ -1,11 +1,13 @@
 package fctreddit.impl.servers.persistence;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * A helper class to perform POJO (Plain Old Java Objects) persistence, using Hibernate and a backing relational database.
@@ -15,14 +17,11 @@ public class Hibernate {
 	private SessionFactory sessionFactory;
 	private static Hibernate instance;
 
-	
-
 	private Hibernate() {
 		try {
 			sessionFactory = new Configuration()
-            .configure(new File(HIBERNATE_CFG_FILE))
-            .buildSessionFactory();
-
+				.configure(new File(HIBERNATE_CFG_FILE))
+				.buildSessionFactory();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -31,115 +30,69 @@ public class Hibernate {
 	/**
 	 * Returns the Hibernate instance, initializing if necessary.
 	 * Requires a configuration file (hibernate.cfg.xml)
-	 * @return
 	 */
 	synchronized public static Hibernate getInstance() {
 		if (instance == null)
 			instance = new Hibernate();
 		return instance;
 	}
-	
+
 	/**
-	 * Persists one or more objects to storage
-	 * @param objects - the objects to persist
-	 */ 
+	 * Executes operations within a single transaction.
+	 * @param action - the function to execute, using a Hibernate session
+	 * @return result of the function, if any
+	 */
+	public <T> T runInTransaction(Function<Session, T> action) {
+		Transaction tx = null;
+		try (Session session = sessionFactory.openSession()) {
+			tx = session.beginTransaction();
+			T result = action.apply(session);
+			tx.commit();
+			return result;
+		} catch (Exception e) {
+			if (tx != null) tx.rollback();
+			throw e;
+		}
+	}
+
+	// Convenience methods (each runs in its own transaction)
 	public void persist(Object... objects) {
-		Transaction tx = null;
-		try(var session = sessionFactory.openSession()) {
-		     tx = session.beginTransaction();
-		     for( var o : objects )
-		    	 session.persist(o);
-		     tx.commit();			
-		} catch (Exception e) {
-		     if (tx!=null) tx.rollback();
-		     throw e;
-		}
+		runInTransaction(session -> {
+			for (var o : objects)
+				session.persist(o);
+			return null;
+		});
 	}
 
-	/**
-	 * Gets one object from storage
-	 * @param identifier - the objects identifier
-	 * @param clazz - the class of the object that to be returned
-	 */ 
 	public <T> T get(Class<T> clazz, Object identifier) {
-		Transaction tx = null;
-		T element = null;
-		try(var session = sessionFactory.openSession()) {
-		     tx = session.beginTransaction();
-		     element = session.get(clazz, identifier);
-		     tx.commit();			
-		} catch (Exception e) {
-		     if (tx!=null) tx.rollback();
-		     throw e;
-		}
-		return element;
-	}
-	
-	/**
-	 * Updates one or more objects previously persisted.
-	 * @param objects - the objects to update
-	 */
-	public void update(Object... objects) {
-		Transaction tx = null;
-		try(var session = sessionFactory.openSession()) {
-		     tx = session.beginTransaction();
-		     for( var o : objects )
-		    	 session.merge(o);
-		     tx.commit();			
-		} catch (Exception e) {
-		     if (tx!=null) tx.rollback();
-		     throw e;
-		}
-	}
-	
-	/**
-	 * Removes one or more objects from storage 
-	 * @param objects - the objects to remove from storage
-	 */
-	public void delete(Object... objects) {
-		Transaction tx = null;
-		try(var session = sessionFactory.openSession()) {
-		     tx = session.beginTransaction();
-		     for( var o : objects )
-		    	 session.remove(o);
-		     tx.commit();			
-		} catch (Exception e) {
-		     if (tx!=null) tx.rollback();
-		     throw e;
-		}
-	}
-	
-	/**
-	 * Performs a jpql Hibernate query (SQL dialect) 
-	 * @param <T> The type of objects returned by the query
-	 * @param jpqlStatement - the jpql query statement
-	 * @param clazz - the class of the objects that will be returned
-	 * @return - list of objects that match the query
-	 */
-	public <T> List<T> jpql(String jpqlStatement, Class<T> clazz) {
-		try(var session = sessionFactory.openSession()) {
-			var query = session.createQuery(jpqlStatement, clazz);
-        	return query.list();
-		} catch (Exception e) {
-		    throw e;
-		}
+		return runInTransaction(session -> session.get(clazz, identifier));
 	}
 
-	/**
-	 * Performs a (native) SQL query  
-	 * 
-	 * @param <T> The type of objects returned by the query
-	 * @param sqlStatement - the jpql query statement
-	 * @param clazz - the class of the objects that will be returned
-	 * @return - list of objects that match the query
-	 */
-	public <T> List<T> sql(String sqlStatement, Class<T> clazz) {
-		try(var session = sessionFactory.openSession()) {
-			var query = session.createNativeQuery(sqlStatement, clazz);
-        	return query.list();
-		} catch (Exception e) {
-		    throw e;
-		}
+	public void update(Object... objects) {
+		runInTransaction(session -> {
+			for (var o : objects)
+				session.merge(o);
+			return null;
+		});
 	}
-	
+
+	public void delete(Object... objects) {
+		runInTransaction(session -> {
+			for (var o : objects)
+				session.remove(o);
+			return null;
+		});
+	}
+
+	public <T> List<T> jpql(String jpqlStatement, Class<T> clazz) {
+		return runInTransaction(session ->
+			session.createQuery(jpqlStatement, clazz).list()
+		);
+	}
+
+	public <T> List<T> sql(String sqlStatement, Class<T> clazz) {
+		return runInTransaction(session ->
+			session.createNativeQuery(sqlStatement, clazz).list()
+		);
+	}
 }

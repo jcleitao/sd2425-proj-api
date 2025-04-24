@@ -55,15 +55,32 @@ public class GrpcUsersServerStub implements UsersGrpc.AsyncService, BindableServ
         }
     }
 
-    @Override
-    public void updateUser(UpdateUserArgs request, StreamObserver<UpdateUserResult> responseObserver) {
-        throw new RuntimeException("Not Implemented...");
-    }
+	@Override
+	public void updateUser(UpdateUserArgs request, StreamObserver<UpdateUserResult> responseObserver) {
 
-    @Override
-    public void deleteUser(DeleteUserArgs request, StreamObserver<DeleteUserResult> responseObserver) {
-        throw new RuntimeException("Not Implemented...");
-    }
+		Result<User> result = impl.updateUser(request.getUserId(), request.getPassword(), DataModelAdaptor.GrpcUser_to_User(request.getUser()));
+
+		if (!result.isOK()) {
+			responseObserver.onError(errorCodeToStatus(result.error()));
+		} else {
+			responseObserver.onNext(UpdateUserResult.newBuilder().setUser(DataModelAdaptor.User_to_GrpcUser(result.value())).build());
+			responseObserver.onCompleted();
+		}
+	}
+
+	@Override
+	public void deleteUser(DeleteUserArgs request, StreamObserver<DeleteUserResult> responseObserver) {
+
+		Result<User> result = impl.deleteUser(request.getUserId(), request.getPassword());
+
+		if (!result.isOK()) {
+			responseObserver.onError(errorCodeToStatus(result.error()));
+		} else {
+
+			responseObserver.onNext(DeleteUserResult.newBuilder().setUser(DataModelAdaptor.User_to_GrpcUser(result.value())).build());
+			responseObserver.onCompleted();
+		}
+	}
 
     @Override
     public void searchUsers(SearchUserArgs request, StreamObserver<GrpcUser> responseObserver) {
