@@ -112,7 +112,8 @@ public interface RestContent {
 	 * @param postId the post that should be updated
 	 * @param userPassword the password, it is assumed that only the author of the post 
 	 * can updated it, and as such, the password sent in the operation should belong to 
-	 * that user.
+	 * that user. The post can only be updated white there are no answers, upVotes, or 
+	 * downVotes on that post.
 	 * @param post A post object with the fields to be updated
 	 * @return 	OK the updated post, in case of success.
 	 * 			FORBIDDEN, if the password is not correct;
